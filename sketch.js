@@ -5,6 +5,7 @@ var redGroup, greenGroup, bonusGroup;
 var startTime;
 var gameTime;
 var lastChange = 0;
+var gameState = "start"; // Estado inicial do jogo
 
 function setup() {
   createCanvas(800, 600);
@@ -26,12 +27,39 @@ function setup() {
 function draw() {
   background(200);
 
+  if (gameState === "start") {
+    // Tela de início
+    displayStartScreen();
+  } else if (gameState === "playing") {
+    // Tela de jogo
+    playGame();
+  } else if (gameState === "gameOver") {
+    // Tela de fim de jogo
+    displayGameOver();
+  }
+}
+
+function displayStartScreen() {
+  // Exibe a tela de início
+  textSize(32);
+  fill(0);
+  textAlign(CENTER, CENTER);
+  text("Bem-vindo ao Jogo Catch & Avoid!", width / 2, height / 2 - 40);
+  textSize(24);
+  text("Use 'a' e 'd' para mover a raquete.", width / 2, height / 2);
+  text("Pressione ESPAÇO para começar.", width / 2, height / 2 + 40);
+
+  // Mostra apenas o cesto na tela de início
+  drawSprite(basket);
+}
+
+function playGame() {
   // Move o cesto com as setas do teclado
   if (keyDown("a")) {
-    basket.position.x -=10;
+    basket.position.x -= 10;
   }
   if (keyDown("d")) {
-    basket.position.x +=10;
+    basket.position.x += 10;
   }
 
   basket.bounceOff(edges);
@@ -80,12 +108,18 @@ function draw() {
   text("Time: " + gameTime, 10, 60);
 
   if (score <= 0) {
-    noLoop(); // Para o loop do jogo
-    textSize(48);
-    textAlign(CENTER, CENTER);
-    fill(0);
-    text(`Game Over!\nTime Survived: ${gameTime} s`, width / 2, height / 2);
+    gameState = "gameOver"; // Muda o estado para gameOver
   }
+}
+
+function displayGameOver() {
+  // Tela de fim de jogo
+  textSize(32);
+  fill(0);
+  textAlign(CENTER, CENTER);
+  text(`Game Over!\nTime Survived: ${gameTime} s`, width / 2, 250);
+  textSize(20)
+  text(`Pressione espaço para reiniciar!`, width / 2, 320);
 }
 
 function redBalls() {
@@ -103,7 +137,7 @@ function redBalls() {
 
 function greenBalls() {
   if (frameCount % 40 === 0) {
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) { //Quantas bolas verdes serão criadas quando o if for verdadeiro. 
       let size = random(10, 30);
       let greenB = createSprite(random(0, 780), 0, size, size);
       greenB.shapeColor = color(0, random(100, 255), 0);
@@ -128,5 +162,21 @@ function increaseDifficulty() {
   if (gameTime % 30 === 0 && gameTime !== lastChange) {
     redGroup.setVelocityEach(random(8, 14)); // Aumenta a velocidade
     lastChange = gameTime; // Atualiza o tempo da última alteração
+  }
+}
+
+function keyPressed() {
+  if (key === ' ') { // Quando a tecla "espaço" é pressionada
+    if (gameState === "start") {
+      gameState = "playing"; // Muda o estado para "playing"
+    } else if (gameState === "gameOver") {
+      // Reinicia o jogo em caso de game over
+      score = 1;
+      redGroup.removeSprites();
+      greenGroup.removeSprites();
+      bonusGroup.removeSprites();
+      startTime = millis();
+      gameState = "playing";
+    }
   }
 }
